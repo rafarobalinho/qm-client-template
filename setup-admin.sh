@@ -14,7 +14,7 @@ set -euo pipefail
 
 ADMIN_EMAIL="$(echo "${ADMIN_EMAIL:-rafaelrobalinho@gmail.com}" | tr '[:upper:]' '[:lower:]')"
 QM_DIR="${QM_DIR:-/opt/qm-app}"
-TEMPLATE_REF="${TEMPLATE_REF:-1600113}"
+TEMPLATE_REF="${TEMPLATE_REF:-104d9d6}"
 RAW="https://raw.githubusercontent.com/rafarobalinho/qm-client-template/${TEMPLATE_REF}"
 
 cd "$QM_DIR"
