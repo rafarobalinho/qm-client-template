@@ -51,6 +51,10 @@ const ALLOW_UNSIGNED_TEST_IDENTITY =
   process.env.NODE_ENV === "test" && process.env.ALLOW_UNSIGNED_TEST_IDENTITY === "1";
 const COOKIE_AUTH = !CORE_SIGNING_SECRET || ALLOW_UNSIGNED_TEST_IDENTITY;
 const AUTH_MODE = COOKIE_AUTH ? "dev" : "portal";
+// Principal the embedded Admin console (/admin) acts as when the request carries no
+// portal identity. Set env.web-ui.ADMIN_PRINCIPAL in qm.config.jsonc to the same
+// email granted org_admin through ADMIN_GRANTS; core still enforces the grant.
+const ADMIN_PRINCIPAL = process.env.ADMIN_PRINCIPAL?.trim().toLowerCase() || null;
 const ALLOW = (process.env.WEB_UI_PRINCIPALS ?? "")
   .split(",")
   .map((s) => s.trim())
@@ -3180,7 +3184,14 @@ async function handleAdminRequest(req: IncomingMessage, res: ServerResponse, ori
   if (path !== "/admin" && !path.startsWith("/admin/")) return false;
   
   const adminPath = path.slice("/admin".length) || "/";
-  const u = cookieUser(req) || "rafael";
+  const u = cookieUser(req) ?? ADMIN_PRINCIPAL;
+  if (!u) {
+    json(res, 503, {
+      error: "admin_principal_unset",
+      message: "Set env.web-ui.ADMIN_PRINCIPAL in qm.config.jsonc to the administrator email granted through ADMIN_GRANTS.",
+    });
+    return true;
+  }
   
   // 1. Admin API routes: /admin/api/...
   if (adminPath.startsWith("/api/")) {

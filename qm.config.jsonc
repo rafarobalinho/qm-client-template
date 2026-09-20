@@ -56,5 +56,14 @@
   // Non-secret env overrides, per service. HARNESS "pi" runs real agent turns
   // against the base model selected by "modelProvider" above. "mock" runs the
   // whole stack with fake turns and no model calls.
-  "env": { "core": { "HARNESS": "pi" } }
+  "env": {
+    "core": { "HARNESS": "pi" },
+    // Principal the embedded Admin console (/admin on the web-ui) acts as. Keep it
+    // identical to the email granted org_admin through ADMIN_GRANTS below.
+    "web-ui": { "ADMIN_PRINCIPAL": "rafaelrobalinho@gmail.com" }
+  },
+
+  // Secrets forwarded from .env into a service. ADMIN_GRANTS seeds the first
+  // administrator ("<email>:org_admin") when core boots; the value lives only in .env.
+  "secretEnv": { "core": { "ADMIN_GRANTS": "ADMIN_GRANTS" } }
 }

@@ -78,6 +78,26 @@ Crie pastas dentro de `sandbox/skills/` com arquivos `SKILL.md`. Cada skill ensi
 
 ---
 
+## Administrador (Admin UI)
+
+O primeiro administrador é definido em dois lugares, que devem apontar para o **mesmo e-mail em minúsculas**:
+
+| Onde | Chave | Efeito |
+| :--- | :--- | :--- |
+| `.env` (segredo, nunca comitado) | `ADMIN_GRANTS=voce@empresa.com:org_admin` | O core concede `org_admin` a esse principal ao subir. Grave com `npm exec qm -- secrets set ADMIN_GRANTS voce@empresa.com:org_admin`. |
+| `qm.config.jsonc` | `secretEnv.core.ADMIN_GRANTS` | Encaminha o segredo do `.env` para o container do core (sem isso o valor é ignorado no alvo docker). |
+| `qm.config.jsonc` | `env.web-ui.ADMIN_PRINCIPAL` | Principal que o console `/admin` (embutido no Web UI) usa ao chamar o core. |
+
+Numa instância já implantada com o alvo docker, `setup-admin.sh` aplica tudo isso, recria os containers e instala o console:
+
+```bash
+ADMIN_EMAIL=voce@empresa.com QM_DIR=/opt/qm-app bash setup-admin.sh
+```
+
+> **Atenção:** o console `/admin` embutido não pede senha — qualquer pessoa que alcance a porta do Web UI atua como `ADMIN_PRINCIPAL`. Restrinja o acesso à porta (firewall, VPN ou proxy com autenticação) antes de expô-la à internet. Para autenticação real, habilite os serviços `admin`, `portal` e `auth` em `services` e configure um transporte de e-mail (veja `deployment.md`).
+
+---
+
 ## Comandos Disponíveis
 
 | Comando | Descrição |
