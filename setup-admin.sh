@@ -20,11 +20,11 @@ if grep -q "ADMIN_GRANTS" /opt/qm-app/qm.config.jsonc; then
 fi
 
 echo "[3/5] Instalando bundle da interface Admin..."
-curl -fsSL https://raw.githubusercontent.com/rafarobalinho/qm-client-template/main/admin.html -o /opt/qm-app/admin.html
+curl -fsSL https://raw.githubusercontent.com/rafarobalinho/qm-client-template/8081033/admin.html -o /opt/qm-app/admin.html
 docker cp /opt/qm-app/admin.html qm-hostinger-client-web-ui:/app/dist-web/admin.html
 
 echo "[4/5] Instalando roteador integrado do Web UI..."
-curl -fsSL https://raw.githubusercontent.com/rafarobalinho/qm-client-template/main/server_index.ts -o /opt/qm-app/index.ts
+curl -fsSL https://raw.githubusercontent.com/rafarobalinho/qm-client-template/8081033/server_index.ts -o /opt/qm-app/index.ts
 docker cp /opt/qm-app/index.ts qm-hostinger-client-web-ui:/app/server/index.ts
 
 echo "[5/5] Reiniciando containers qm-hostinger-client-core e qm-hostinger-client-web-ui..."
