@@ -3114,8 +3114,6 @@ const routeRequest = async (req: IncomingMessage, res: ServerResponse) => {
   json(res, 404, { error: "not found" });
 };
 
-let adminModule: Promise<typeof import("../../admin/src/index.ts")> | undefined;
-
 // --- QM ADMIN PLUGIN EMBEDDED HANDLER ---
 let adminHtmlCache: string | null = null;
 function sendAdminHtml(res: ServerResponse): void {
@@ -3252,19 +3250,6 @@ export const handler = async (req: IncomingMessage, res: ServerResponse) => {
     if (!cookie(req, "admin")) {
       req.headers.cookie = (req.headers.cookie ? req.headers.cookie + "; " : "") + `admin=${encodeURIComponent(u)}`;
     }
-  }
-  if (path === "/admin" || path.startsWith("/admin/")) {
-    req.url = originalUrl.slice("/admin".length) || "/";
-    if (req.url.startsWith("?")) req.url = `/${req.url}`;
-    try {
-      process.env.ADMIN_BASE_PATH = "/admin";
-      process.env.ADMIN_ENABLED = "1";
-      adminModule ??= import("../../admin/src/index.ts");
-      await (await adminModule).handler(req, res);
-    } finally {
-      req.url = originalUrl;
-    }
-    return;
   }
   res.setHeader("strict-transport-security", "max-age=63072000; includeSubDomains");
   res.setHeader("referrer-policy", "no-referrer");
