@@ -78,23 +78,25 @@ Crie pastas dentro de `sandbox/skills/` com arquivos `SKILL.md`. Cada skill ensi
 
 ---
 
-## Administrador (Admin UI)
+## Administrador, login e novos membros
 
-O primeiro administrador é definido em dois lugares, que devem apontar para o **mesmo e-mail em minúsculas**:
+O login é nativo do QM: os serviços `portal` (porta de entrada única) e `auth` (envia um link de acesso único por e-mail) já vêm em `services`. Não há senhas; quem não recebe link não entra.
 
 | Onde | Chave | Efeito |
 | :--- | :--- | :--- |
-| `.env` (segredo, nunca comitado) | `ADMIN_GRANTS=voce@empresa.com:org_admin` | O core concede `org_admin` a esse principal ao subir. Grave com `npm exec qm -- secrets set ADMIN_GRANTS voce@empresa.com:org_admin`. |
-| `qm.config.jsonc` | `secretEnv.core.ADMIN_GRANTS` | Encaminha o segredo do `.env` para o container do core (sem isso o valor é ignorado no alvo docker). |
-| `qm.config.jsonc` | `env.web-ui.ADMIN_PRINCIPAL` | Principal que o console `/admin` (embutido no Web UI) usa ao chamar o core. |
+| `.env` | `ADMIN_GRANTS=voce@empresa.com:org_admin` | Primeiro administrador. O core concede `org_admin` ao subir. |
+| `.env` | `AUTH_ALLOWED_EMAILS=a@x.com,b@y.com` | Quem pode pedir link de login (lista nomeada). |
+| `qm.config.jsonc` | `env.auth.AUTH_ALLOWED_EMAIL_DOMAIN` | Alternativa à lista: admite o domínio inteiro da empresa. |
+| `qm.config.jsonc` | `env.auth.AUTH_EMAIL_TRANSPORT` | `smtp` (qualquer caixa ou relay) ou `resend`. |
+| `.env` | `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `AUTH_EMAIL_FROM` | Canal de envio dos links. Com Gmail: `smtp.gmail.com`, a conta, uma senha de app, e `AUTH_EMAIL_FROM` igual à conta. |
 
-Numa instância já implantada com o alvo docker, `setup-admin.sh` aplica tudo isso, recria os containers e instala o console:
+Grave segredos sempre com `npm exec qm -- secrets set CHAVE` (pede o valor sem ecoar). As chaves do broker (`AUTH_SIGNING_JWK`, `AUTH_TOKEN_SECRET`, `AUTH_CLIENT_SECRET`, `PORTAL_SESSION_SECRET`) são geradas por `npm exec qm -- setup`, ou à mão conforme os comentários de `.env.example`.
 
-```bash
-ADMIN_EMAIL=voce@empresa.com QM_DIR=/opt/qm-app bash setup-admin.sh
-```
+**Incluir um membro:** adicione o e-mail a `AUTH_ALLOWED_EMAILS` e rode `npm exec qm -- up`, ou use um domínio permitido para cobrir toda a empresa. Pessoas de fora do domínio são convidadas na aba **Users** do Admin (`<publicUrl>/admin`), com validade.
 
-> **Atenção:** o console `/admin` embutido não pede senha — qualquer pessoa que alcance a porta do Web UI atua como `ADMIN_PRINCIPAL`. Restrinja o acesso à porta (firewall, VPN ou proxy com autenticação) antes de expô-la à internet. Para autenticação real, habilite os serviços `admin`, `portal` e `auth` em `services` e configure um transporte de e-mail (veja `deployment.md`).
+**Trocar o canal de e-mail** (Gmail → relay da empresa ou Resend) é só trocar os segredos e, se for Resend, `AUTH_EMAIL_TRANSPORT`; depois `check`, `doctor` e `up`. Usuários e sessões não mudam.
+
+**Portas no alvo docker:** só a do portal (`basePort + 1`) deve ficar pública. Core, Web UI e Admin devem ser bloqueados de fora; `ops/install-firewall.sh` faz isso na cadeia `DOCKER-USER` (o `ufw` não alcança portas publicadas pelo Docker).
 
 ---
 
@@ -104,7 +106,7 @@ ADMIN_EMAIL=voce@empresa.com QM_DIR=/opt/qm-app bash setup-admin.sh
 | :--- | :--- |
 | `npm run check` | Valida se `qm.config.jsonc`, skills e tools estão 100% corretos. |
 | `npm run plan` | Mostra os containers e variáveis que serão executados sem iniciar nada. |
-| `npm run deploy` | Inicia o banco PostgreSQL, o motor QM, a interface Web e os Sandboxes. |
+| `npm run deploy` | Inicia o banco PostgreSQL, o motor QM, o portal de login, a interface Web, o Admin e os Sandboxes. |
 | `npm run status` | Exibe o status dos containers em execução. |
 | `npx qm down` | Para os containers do cliente. |
 | `npx qm outputs` | Exibe as URLs do painel Web e links do Slack. |
