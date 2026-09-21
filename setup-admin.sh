@@ -53,6 +53,8 @@ if (/"ADMIN_PRINCIPAL"\s*:/.test(s)) {
 } else {
   s = addProp(s, "env", `{ "web-ui": { "ADMIN_PRINCIPAL": "${email}" } }`);
 }
+// ADMIN_GRANTS e segredo: sai de env.core (texto puro na config) e passa a vir do .env via secretEnv.
+s = s.replace(/"ADMIN_GRANTS"\s*:\s*"(?!ADMIN_GRANTS")[^"]*"\s*,?\s*/g, "").replace(/,(\s*})/g, "$1");
 if (!/"ADMIN_GRANTS"\s*:\s*"ADMIN_GRANTS"/.test(s)) {
   if (/"secretEnv"\s*:\s*\{\s*"core"\s*:\s*\{/.test(s)) {
     s = s.replace(/"secretEnv"\s*:\s*\{\s*"core"\s*:\s*\{/, `"secretEnv": { "core": { "ADMIN_GRANTS": "ADMIN_GRANTS", `);
